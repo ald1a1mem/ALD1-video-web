@@ -1,1 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALPHA DRIVE ONE 影片庫</title>
+  <style>
+    :root {
+      --bg-color: #FFFFFF;
+      --main-title-color: #965454;
+      --theme-color: #9FB5C3;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      color: #333333;
+      min-height: 100vh;
+      padding-bottom: 64px;
+    }
+
+    /* 頂部標題 */
+    header {
+      text-align: center;
+      padding: 36px 16px 20px;
+    }
+
+    header h1 {
+      color: var(--main-title-color);
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
+
+    /* 主分頁導覽列 */
+    .tabs-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 0 16px;
+      margin-bottom: 18px;
+    }
+
+    .tabs-container {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      background: #FFFFFF;
+      padding: 6px;
+      border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+      border: 1px solid #F0F0F0;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #666666;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: #F7F7F7;
+    }
+
+    .tab-btn.active {
+      background-color: var(--theme-color);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 標籤篩選列 */
+    .tags-wrapper {
+      max-width: 960px;
+      margin: 0 auto 24px;
+      padding: 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tag-btn {
+      border: 1.5px solid #E5E5E5;
+      background: #FFFFFF;
+      color: #666666;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tag-btn:hover {
+      border-color: var(--theme-color);
+      color: var(--theme-color);
+    }
+
+    .tag-btn.active {
+      background-color: var(--theme-color);
+      border-color: var(--theme-color);
+      color: #FFFFFF;
+    }
+
+    /* 播放清單區塊容器 */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .playlist-box {
+      background: #FFFFFF;
+      border: 2px solid var(--theme-color);
+      border-radius: 20px;
+      padding: 20px 18px 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: border-color 0.25s ease;
+    }
+
+    .playlist-title {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--theme-color);
+      margin-bottom: 16px;
+      letter-spacing: 0.04em;
+      transition: color 0.25s ease;
+    }
+
+    /* 單行橫向滑動列表 */
+    .video-row {
+      display: flex;
+      flex-direction: row;
+      gap: 14px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scroll-behavior: smooth;
+    }
+
+    /* 自訂橫向捲軸樣式 */
+    .video-row::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .video-row::-webkit-scrollbar-track {
+      background: #F3F3F3;
+      border-radius: 999px;
+    }
+
+    .video-row::-webkit-scrollbar-thumb {
+      background: var(--theme-color);
+      border-radius: 999px;
+    }
+
+    /* 影片卡片 */
+    .video-card {
+      flex: 0 0 215px;
+      background: #FFFFFF;
+      border: 1.5px solid var(--theme-color);
+      border-radius: 14px;
+      overflow: hidden;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.25s ease;
+    }
+
+    .video-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .thumb-box {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #F5F5F5;
+      overflow: hidden;
+    }
+
+    .thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    /* 影片標題（跟隨分頁色） */
+    .video-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--theme-color);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      transition: color 0.25s ease;
+    }
+
+    /* 卡片內標籤（無 #，跟隨分頁色） */
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: auto;
+    }
+
+    .card-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--theme-color);
+      border: 1px solid var(--theme-color);
+      padding: 1px 7px;
+      border-radius: 999px;
+      line-height: 1.4;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* 發布時間（26.11/27 格式，跟隨分頁色） */
+    .video-date {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--theme-color);
+      opacity: 0.85;
+      transition: color 0.25s ease;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: #999999;
+      font-size: 0.95rem;
+    }
+
+    /* 底部固定帳號 */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(4px);
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #999999;
+      letter-spacing: 0.04em;
+      z-index: 50;
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.45rem;
+      }
+      .tab-btn {
+        padding: 7px 13px;
+        font-size: 0.88rem;
+      }
+      .video-card {
+        flex: 0 0 185px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ALPHA DRIVE ONE 影片庫</h1>
+  </header>
+
+  <!-- 四大分頁 -->
+  <div class="tabs-wrapper">
+    <div class="tabs-container" id="tabsContainer"></div>
+  </div>
+
+  <!-- 成員與團體標籤 -->
+  <div class="tags-wrapper" id="tagsContainer"></div>
+
+  <!-- 播放清單主內容區 -->
+  <main id="playlistContainer"></main>
+
+  <!-- 底部固定帳號 -->
+  <footer>@ald1.a1mem</footer>
+
+  <script>
+    // 1. 分頁與對應顏色設定
+    const TABS = [
+      { id: "stage",    label: "🎤舞台",   color: "#9FB5C3" },
+      { id: "fancam",   label: "🎥直拍",   color: "#CEC9E5" },
+      { id: "variety",  label: "📺節目",   color: "#B59E8C" },
+      { id: "official", label: "🟥官方YT", color: "#DF9F97" }
+    ];
+
+    // 2. 篩選標籤清單
+    const ALL_TAGS = ["ALD1", "俊抒", "ARNO", "LEO", "虔佑", "相沅", "鑫隆", "安信", "相炫"];
+
+    // 3. 影片資料庫（未來新增影片只要照這個格式往下加即可）
+    // date 格式為 "YY.MM/DD"，程式會自動由新至舊排序
+    // youtubeId 填入 YouTube 網址 v= 後面的 11 碼即可自動抓封面與連結
+    const VIDEOS = [
+      // === 🎤舞台 ===
+      {
+        tab: "stage",
+        playlist: "MBC",
+        title: "261127 Show! 音樂中心 回歸舞台",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/27",
+        tags: ["ALD1", "俊抒", "相沅", "鑫隆"]
+      },
+      {
+        tab: "stage",
+        playlist: "MBC",
+        title: "260905 Show! 音樂中心 MC 相沅 & 俊抒",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.09/05",
+        tags: ["相沅", "俊抒"]
+      },
+      {
+        tab: "stage",
+        playlist: "SBS",
+        title: "260726 SBS 人氣歌謠 鑫隆 & 俊抒 & 相沅 MC cut 合集",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.07/26",
+        tags: ["鑫隆", "俊抒", "相沅"]
+      },
+      {
+        tab: "stage",
+        playlist: "Mnet",
+        title: "261120 M COUNTDOWN 初舞台 Full Cam",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/20",
+        tags: ["ALD1", "ARNO", "LEO", "虔佑", "安信", "相炫"]
+      },
+
+      // === 🎥直拍 ===
+      {
+        tab: "fancam",
+        playlist: "MBC 直拍",
+        title: "261127 音樂中心 相沅 個人直拍 4K",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/27",
+        tags: ["相沅"]
+      },
+      {
+        tab: "fancam",
+        playlist: "MBC 直拍",
+        title: "261127 音樂中心 LEO 個人直拍 4K",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/27",
+        tags: ["LEO"]
+      },
+      {
+        tab: "fancam",
+        playlist: "SBS 臉讚直拍",
+        title: "261115 人氣歌謠 安信 個人直拍",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/15",
+        tags: ["安信"]
+      },
+
+      // === 📺節目 ===
+      {
+        tab: "variety",
+        playlist: "Mnet",
+        title: "SUMBAKKOKJIL 2 ALPHA DRIVE ONE 預告",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/22",
+        tags: ["ALD1", "鑫隆"]
+      },
+      {
+        tab: "variety",
+        playlist: "一週偶像",
+        title: "261018 Weekly Idol 全員隨機舞蹈挑戰",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.10/18",
+        tags: ["ALD1", "虔佑", "相炫"]
+      },
+
+      // === 🟥官方YT ===
+      {
+        tab: "official",
+        playlist: "UNBREAKABLE：少年BEAST",
+        title: "【繁中歌詞】Diamond Hour",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/25",
+        tags: ["ALD1"]
+      },
+      {
+        tab: "official",
+        playlist: "UNBREAKABLE：少年BEAST",
+        title: "【繁中歌詞】One More Time",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/18",
+        tags: ["ALD1", "ARNO"]
+      },
+      {
+        tab: "official",
+        playlist: "ALD1 LOG",
+        title: "EP.05 練習室幕後花絮",
+        youtubeId: "dQw4w9WgXcQ",
+        date: "26.11/10",
+        tags: ["ALD1", "俊抒", "安信"]
+      }
+    ];
+
+    // 目前狀態
+    let currentTab = TABS[0].id;
+    let selectedTags = new Set();
+
+    // 將 "26.11/27" 轉成可比較大小的數字 261127
+    function parseDateValue(dateStr) {
+      return Number(dateStr.replace(/\D/g, "")) || 0;
+    }
+
+    // 套用目前分頁的主題色
+    function applyThemeColor() {
+      const tabObj = TABS.find(t => t.id === currentTab) || TABS[0];
+      document.documentElement.style.setProperty("--theme-color", tabObj.color);
+    }
+
+    // 渲染分頁按鈕
+    function renderTabs() {
+      const container = document.getElementById("tabsContainer");
+      container.innerHTML = "";
+      TABS.forEach(tab => {
+        const btn = document.createElement("button");
+        btn.className = "tab-btn" + (tab.id === currentTab ? " active" : "");
+        btn.textContent = tab.label;
+        btn.onclick = () => {
+          currentTab = tab.id;
+          applyThemeColor();
+          renderTabs();
+          renderPlaylists();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // 渲染標籤篩選鈕（支援多選，再點一次取消，換分頁保留）
+    function renderTags() {
+      const container = document.getElementById("tagsContainer");
+      container.innerHTML = "";
+      ALL_TAGS.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.className = "tag-btn" + (selectedTags.has(tag) ? " active" : "");
+        btn.textContent = tag;
+        btn.onclick = () => {
+          if (selectedTags.has(tag)) {
+            selectedTags.delete(tag);
+          } else {
+            selectedTags.add(tag);
+          }
+          renderTags();
+          renderPlaylists();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // 渲染播放清單區塊與影片卡片
+    function renderPlaylists() {
+      const container = document.getElementById("playlistContainer");
+      container.innerHTML = "";
+
+      // 1. 篩選目前分頁與已選標籤
+      const filtered = VIDEOS.filter(video => {
+        if (video.tab !== currentTab) return false;
+        if (selectedTags.size === 0) return true;
+        return video.tags.some(t => selectedTags.has(t));
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">目前沒有符合此標籤條件的影片</div>`;
+        return;
+      }
+
+      // 2. 依照播放清單名稱分組（維持資料出現順序）
+      const groups = new Map();
+      filtered.forEach(video => {
+        if (!groups.has(video.playlist)) {
+          groups.set(video.playlist, []);
+        }
+        groups.get(video.playlist).push(video);
+      });
+
+      // 3. 產生每個播放清單區塊
+      groups.forEach((videosInPlaylist, playlistName) => {
+        // 依發布時間由新至舊排序
+        videosInPlaylist.sort((a, b) => parseDateValue(b.date) - parseDateValue(a.date));
+
+        const box = document.createElement("section");
+        box.className = "playlist-box";
+
+        const title = document.createElement("h2");
+        title.className = "playlist-title";
+        title.textContent = playlistName;
+        box.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "video-row";
+
+        videosInPlaylist.forEach(video => {
+          const card = document.createElement("a");
+          card.className = "video-card";
+          card.href = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+          card.target = "_blank";
+          card.rel = "noopener noreferrer";
+
+          const thumbUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+          const tagsHtml = video.tags.map(t => `<span class="card-tag">${t}</span>`).join("");
+
+          card.innerHTML = `
+            <div class="thumb-box">
+              <img src="${thumbUrl}" alt="${video.title}" loading="lazy" />
+            </div>
+            <div class="card-body">
+              <div class="video-title">${video.title}</div>
+              <div class="card-tags">${tagsHtml}</div>
+              <div class="video-date">${video.date}</div>
+            </div>
+          `;
+          row.appendChild(card);
+        });
+
+        box.appendChild(row);
+        container.appendChild(box);
+      });
+    }
+
+    // 初始化
+    applyThemeColor();
+    renderTabs();
+    renderTags();
+    renderPlaylists();
+  </script>
+</body>
+</html>
 
