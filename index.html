@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ALPHA DRIVE ONE 影片庫</title>
+  <link rel="icon" type="image/png" href="https://github.com/ald1a1mem.png" />
+  <link rel="apple-touch-icon" href="https://github.com/ald1a1mem.png" />
   <style>
     :root {
       --bg-color: #FFFFFF;
@@ -310,20 +312,19 @@
   <script>
     // 1. 分頁與對應顏色設定
     const TABS = [
-      { id: "stage",    label: "🎤舞台",   color: "#9FB5C3" },
-      { id: "fancam",   label: "🎥直拍",   color: "#CEC9E5" },
-      { id: "variety",  label: "📺節目",   color: "#B59E8C" },
-      { id: "official", label: "🟥官方YT", color: "#DF9F97" }
+      { id: "stage",  label: "🎤舞台",   color: "#9FB5C3" },
+      { id: "fancam", label: "🎥直拍",   color: "#CEC9E5" },
+      { id: "video",  label: "📺節目",   color: "#B59E8C" },
+      { id: "YT",     label: "🟥官方YT", color: "#DF9F97" }
     ];
 
     // 2. 篩選標籤清單
     const ALL_TAGS = ["ALD1", "俊抒", "ARNO", "LEO", "虔佑", "相沅", "鑫隆", "安信", "相炫"];
 
-    // 3. 影片資料庫（未來新增影片只要照這個格式往下加即可）
-    // date 格式為 "YY.MM/DD"，程式會自動由新至舊排序
-    // youtubeId 填入 YouTube 網址 v= 後面的 11 碼即可自動抓封面與連結
+    // 3. 影片資料庫
+    // tab 可填: "stage" | "fancam" | "video" | "YT"
     const VIDEOS = [
-      // === 🎤舞台 ===
+      // === 🎤舞台 (stage) ===
       {
         tab: "stage",
         playlist: "MBC",
@@ -357,7 +358,7 @@
         tags: ["ALD1", "ARNO", "LEO", "虔佑", "安信", "相炫"]
       },
 
-      // === 🎥直拍 ===
+      // === 🎥直拍 (fancam) ===
       {
         tab: "fancam",
         playlist: "MBC 直拍",
@@ -383,9 +384,9 @@
         tags: ["安信"]
       },
 
-      // === 📺節目 ===
+      // === 📺節目 (video) ===
       {
-        tab: "variety",
+        tab: "video",
         playlist: "Mnet",
         title: "SUMBAKKOKJIL 2 ALPHA DRIVE ONE 預告",
         youtubeId: "dQw4w9WgXcQ",
@@ -393,7 +394,7 @@
         tags: ["ALD1", "鑫隆"]
       },
       {
-        tab: "variety",
+        tab: "video",
         playlist: "一週偶像",
         title: "261018 Weekly Idol 全員隨機舞蹈挑戰",
         youtubeId: "dQw4w9WgXcQ",
@@ -401,9 +402,9 @@
         tags: ["ALD1", "虔佑", "相炫"]
       },
 
-      // === 🟥官方YT ===
+      // === 🟥官方YT (YT) ===
       {
-        tab: "official",
+        tab: "YT",
         playlist: "UNBREAKABLE：少年BEAST",
         title: "【繁中歌詞】Diamond Hour",
         youtubeId: "dQw4w9WgXcQ",
@@ -411,7 +412,7 @@
         tags: ["ALD1"]
       },
       {
-        tab: "official",
+        tab: "YT",
         playlist: "UNBREAKABLE：少年BEAST",
         title: "【繁中歌詞】One More Time",
         youtubeId: "dQw4w9WgXcQ",
@@ -419,7 +420,7 @@
         tags: ["ALD1", "ARNO"]
       },
       {
-        tab: "official",
+        tab: "YT",
         playlist: "ALD1 LOG",
         title: "EP.05 練習室幕後花絮",
         youtubeId: "dQw4w9WgXcQ",
@@ -444,6 +445,123 @@
     }
 
     // 渲染分頁按鈕
+    function renderTabs() {
+      const container = document.getElementById("tabsContainer");
+      container.innerHTML = "";
+      TABS.forEach(tab => {
+        const btn = document.createElement("button");
+        btn.className = "tab-btn" + (tab.id === currentTab ? " active" : "");
+        btn.textContent = tab.label;
+        btn.onclick = () => {
+          currentTab = tab.id;
+          applyThemeColor();
+          renderTabs();
+          renderPlaylists();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // 渲染標籤篩選鈕（支援多選，再點一次取消，換分頁保留）
+    function renderTags() {
+      const container = document.getElementById("tagsContainer");
+      container.innerHTML = "";
+      ALL_TAGS.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.className = "tag-btn" + (selectedTags.has(tag) ? " active" : "");
+        btn.textContent = tag;
+        btn.onclick = () => {
+          if (selectedTags.has(tag)) {
+            selectedTags.delete(tag);
+          } else {
+            selectedTags.add(tag);
+          }
+          renderTags();
+          renderPlaylists();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // 渲染播放清單區塊與影片卡片
+    function renderPlaylists() {
+      const container = document.getElementById("playlistContainer");
+      container.innerHTML = "";
+
+      // 1. 篩選目前分頁與已選標籤
+      const filtered = VIDEOS.filter(video => {
+        if (video.tab !== currentTab) return false;
+        if (selectedTags.size === 0) return true;
+        return video.tags.some(t => selectedTags.has(t));
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">目前沒有符合此標籤條件的影片</div>`;
+        return;
+      }
+
+      // 2. 依照播放清單名稱分組（維持資料出現順序）
+      const groups = new Map();
+      filtered.forEach(video => {
+        if (!groups.has(video.playlist)) {
+          groups.set(video.playlist, []);
+        }
+        groups.get(video.playlist).push(video);
+      });
+
+      // 3. 產生每個播放清單區塊
+      groups.forEach((videosInPlaylist, playlistName) => {
+        // 依發布時間由新至舊排序
+        videosInPlaylist.sort((a, b) => parseDateValue(b.date) - parseDateValue(a.date));
+
+        const box = document.createElement("section");
+        box.className = "playlist-box";
+
+        const title = document.createElement("h2");
+        title.className = "playlist-title";
+        title.textContent = playlistName;
+        box.appendChild(title);
+
+        const row = document.createElement("div");
+        row.className = "video-row";
+
+        videosInPlaylist.forEach(video => {
+          const card = document.createElement("a");
+          card.className = "video-card";
+          card.href = `https://www.youtube.com/watch?v=${video.youtubeId}`;
+          card.target = "_blank";
+          card.rel = "noopener noreferrer";
+
+          const thumbUrl = `https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`;
+          const tagsHtml = video.tags.map(t => `<span class="card-tag">${t}</span>`).join("");
+
+          card.innerHTML = `
+            <div class="thumb-box">
+              <img src="${thumbUrl}" alt="${video.title}" loading="lazy" />
+            </div>
+            <div class="card-body">
+              <div class="video-title">${video.title}</div>
+              <div class="card-tags">${tagsHtml}</div>
+              <div class="video-date">${video.date}</div>
+            </div>
+          `;
+          row.appendChild(card);
+        });
+
+        box.appendChild(row);
+        container.appendChild(box);
+      });
+    }
+
+    // 初始化
+    applyThemeColor();
+    renderTabs();
+    renderTags();
+    renderPlaylists();
+  </script>
+</body>
+</html>
+染分頁按鈕
     function renderTabs() {
       const container = document.getElementById("tabsContainer");
       container.innerHTML = "";
